@@ -8,9 +8,24 @@ import 'package:gorouter/screen/6_path_param_screen.dart';
 import 'package:gorouter/screen/7_query_param_screen.dart';
 import 'package:gorouter/screen/8_nested_child_screen.dart';
 import 'package:gorouter/screen/8_nested_screen.dart';
+import 'package:gorouter/screen/9_login_screen.dart';
+import 'package:gorouter/screen/9_private_screen.dart';
 import 'package:gorouter/screen/root_screen.dart';
 
-final router = GoRouter(routes: [
+// true = Login 됨 / false = Login 안됨
+bool authState = false;
+
+final router = GoRouter(
+  redirect: (context, state) {
+    // return string (path) -> 해당 라우트로 이동한다 (path)
+    // return null -> 원래 이동하려던 라우트로 이동한다.
+    if(state.location == '/login/private' && !authState){
+      return '/login';
+    }
+
+    return null;
+  },
+    routes: [
   GoRoute(
       path: '/',
       builder: (context, state) {
@@ -65,14 +80,33 @@ final router = GoRouter(routes: [
               return QueryParamScreen();
             }),
         ShellRoute(
-          builder: (context, state, child) {
-            return NestedScreen(child: child);
-          },
-          routes: [
-            GoRoute(path: 'nested/a', builder: (_, state) => NestedChildScreen(routeName: '/nested/a')),
-            GoRoute(path: 'nested/b', builder: (_, state) => NestedChildScreen(routeName: '/nested/b')),
-            GoRoute(path: 'nested/c', builder: (_, state) => NestedChildScreen(routeName: '/nested/c'))
-          ]
-        )
+            builder: (context, state, child) {
+              return NestedScreen(child: child);
+            },
+            routes: [
+              GoRoute(
+                  path: 'nested/a',
+                  builder: (_, state) =>
+                      NestedChildScreen(routeName: '/nested/a')),
+              GoRoute(
+                  path: 'nested/b',
+                  builder: (_, state) =>
+                      NestedChildScreen(routeName: '/nested/b')),
+              GoRoute(
+                  path: 'nested/c',
+                  builder: (_, state) =>
+                      NestedChildScreen(routeName: '/nested/c'))
+            ]),
+        GoRoute(path: 'login', builder: (_, state) => LoginScreen(), routes: [
+          GoRoute(path: 'private', builder: (_, state) => PrivateScreen())
+        ]),
+        GoRoute(path: 'login2', builder: (_, state) => LoginScreen(), routes: [
+          GoRoute(path: 'private', builder: (_, state) => PrivateScreen(), redirect: (context, state){
+            if(!authState){
+              return '/login2';
+            }
+            return null;
+          })
+        ]),
       ]),
 ]);
